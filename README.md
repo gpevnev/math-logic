@@ -15,3 +15,7 @@ Examples:
  * `P->!QQ->!R10&S|!T&U&V` 
    should be 
    `(->,P,(->,(!QQ),(|,(&,(!R10),S),(&,(&,(!T),U),V))))`
+
+## Task 1:
+
+Check and annotate proof of classical propositional calculus

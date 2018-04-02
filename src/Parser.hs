@@ -94,5 +94,5 @@ chainl mem op = do { x <- mem; rest x } where
 
 parse :: Prs a -> String -> a
 parse p s = case apply p s of 
-    Just (a, s') -> if null s' then a else error $ "got extra \"" ++ s' ++ "\"" 
+    Just (a, s') -> if null s' then a else a -- error $ "got extra \"" ++ s' ++ "\"" 
     Nothing -> error "cannot parse"

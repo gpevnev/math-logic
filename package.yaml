@@ -20,7 +20,7 @@ extra-source-files:
 description:         Please see the README on Github at <https://github.com/gpevnev/math-logic#readme>
 
 dependencies:
-- base >= 4.7 && < 5git 
+- base >= 4.7 && < 5
 - containers > 0.5
 
 library:
@@ -47,3 +47,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - math-logic
+    - HUnit >= 1.6
