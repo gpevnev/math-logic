@@ -1,4 +1,4 @@
-module Annotation where
+module Annotation where 
 
 import Prelude hiding (compare)
 import Expression
@@ -6,25 +6,7 @@ import Control.Applicative ((<|>))
 import Parser
 import Utility
 import Data.List (find)
-import System.IO
 import Data.Map.Strict (Map, insert, insertWith, empty, fromList)
-
--- IO part
-
-data Header = Header ![Expr] !Expr
-    deriving Show
-
-data File = File !Header ![Expr]
-    deriving Show
-
-header :: Prs Header
-header = Header <$> (expr `sepBy` char ',') <* string "|-" <*> expr
-
-file :: Prs File
-file = File <$> header <* newLine
-            <*> expr `sepBy` newLine
-
--- end of IO part
 
 -- begin of data
 
@@ -47,8 +29,8 @@ instance Show AnnotatedExpr where
 
 -- end of data
 
-annotateProof :: File -> Handle -> IO ()
-annotateProof (File (Header hypothesises _) exprs) handle = proof where
+annotateProof :: File -> [String]
+annotateProof (File (Header hypothesises _) exprs) = proof where
     
     hypMap = fromList $ zip hypothesises [1..] 
     checkHypothesis e = Hypothesis <$> hypMap !? e 
@@ -62,23 +44,22 @@ annotateProof (File (Header hypothesises _) exprs) handle = proof where
             (m2, r2) = compare e2 e2' m1 
         in (m2, op == op' && r1 && r2)
     compare (Neg e1)       (Neg e1')         m = compare e1 e1' m 
-    compare (Var s1)       (Var s1')         m = (m, s1 == s1')
-    compare   e1           (Meta s)          m = 
+    compare   e1           (Var s)          m = 
         case m !? s of 
             Nothing -> (insert s e1 m, True)
             Just expectedExpr -> (m, expectedExpr == e1) 
     compare   _               _              m = (m, False)
 
-    axioms = [ (parse expr "a->b->a"                  ,  Ax 1 )
-             , (parse expr "(a->b)->(a->b->c)->(a->c)",  Ax 2 )
-             , (parse expr "a->b->a&b"                ,  Ax 3 )
-             , (parse expr "a&b->a"                   ,  Ax 4 )
-             , (parse expr "a&b->b"                   ,  Ax 5 )
-             , (parse expr "a->a|b"                   ,  Ax 6 )
-             , (parse expr "b->a|b"                   ,  Ax 7 )
-             , (parse expr "(a->c)->(b->c)->(a|b->c)" ,  Ax 8 )
-             , (parse expr "(a->b)->(a->!b)->!a"      ,  Ax 9 )
-             , (parse expr "!!a->a"                   ,  Ax 10)
+    axioms = [ (parse expr "A->B->A"                  ,  Ax 1 )
+             , (parse expr "(A->B)->(A->B->C)->(A->C)",  Ax 2 )
+             , (parse expr "A->B->A&B"                ,  Ax 3 )
+             , (parse expr "A&B->A"                   ,  Ax 4 )
+             , (parse expr "A&B->B"                   ,  Ax 5 )
+             , (parse expr "A->A|B"                   ,  Ax 6 )
+             , (parse expr "B->A|B"                   ,  Ax 7 )
+             , (parse expr "(A->C)->(B->C)->(A|B->C)" ,  Ax 8 )
+             , (parse expr "(A->B)->(A->!B)->!A"      ,  Ax 9 )
+             , (parse expr "!!A->A"                   ,  Ax 10)
              ]
 
     linedExprs :: [(Int, Expr)]
@@ -110,8 +91,8 @@ annotateProof (File (Header hypothesises _) exprs) handle = proof where
         mp@(Just (Mp i j)) | (i < curLine) && (j < curLine) -> mp
         _                                                   -> Nothing
 
-    proof = mapM_ proofStep linedExprs
+    proof = map proofStep linedExprs
 
     proofStep (curLine, e)= 
         let annotation = (checkHypothesis e <|> checkAxioms e <|> checkMp curLine e) `orElse` Wrong
-        in hPutStrLn handle (show (AnnExpr curLine e annotation))
+        in show (AnnExpr curLine e annotation)

@@ -27,25 +27,9 @@ execTask prs mapper = do
 task0 :: IO ()
 task0 = execTask expr prefixForm
 
--- parseExprFromHandle :: Handle -> IO Expr
--- parseExprFromHandle handle = do 
---     l <- hGetLine handle
---     return $ parse expr (removeSpaces l)
-
--- parseExprs :: Handle -> IO [Expr]
--- parseExprs handle = do 
---     eof <- hIsEOF handle
---     if not eof then (:) <$> (parseExprFromHandle handle) <*> parseExprs handle else return []
-
 task1 :: IO ()
 task1 = do 
     s <- readFile inFile
-    withFile outFile WriteMode (\handle -> annotateProof (parse file (removeSpaces s)) handle)
--- task1 = do 
---     -- let fileObj = parse 
---     fileObj <- withFile inFile ReadMode (\handle -> do
---         headerLine <- hGetLine handle
---         let header' = (parse header (removeSpaces headerLine))
---         File header' <$> (parseExprs handle)
---         )
---     withFile outFile WriteMode (\handle -> annotateProof fileObj handle)
+    withFile outFile WriteMode (\handle -> 
+        mapM_ (hPutStrLn handle) $ annotateProof (parse file (removeSpaces s))
+        )

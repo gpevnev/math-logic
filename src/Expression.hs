@@ -12,8 +12,7 @@ instance Show Op where
     show Impl = "->"
 
 data Expr =     
-    Meta !String
-    | Var !String          -- Proposional variable
+    Var !String          -- Proposional variable
     | Neg !Expr          -- !Expr
     | Bin Op !Expr !Expr -- Expr `Op` Expr
     deriving (Eq, Ord)
@@ -44,4 +43,16 @@ expr = disj `chainr` (string "->" *> pure (Bin Impl)) where
       <|> (char '(') *> expr <* (char ')')
 
     var = Var <$> ((:) <$> upper <*> many (upper <|> digit))
-      <|> Meta <$> many1 lower
+
+data Header = Header ![Expr] !Expr
+    deriving Show
+
+data File = File !Header ![Expr]
+    deriving Show
+
+header :: Prs Header
+header = Header <$> (expr `sepBy` char ',') <* string "|-" <*> expr
+
+file :: Prs File
+file = File <$> header <* newLine
+            <*> expr `sepBy` newLine
