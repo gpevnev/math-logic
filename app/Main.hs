@@ -1,8 +1,7 @@
 module Main where
 
-import Lib (task1)
+import           Lib (task2)
 
 main :: IO ()
 main = currentTask where
-    currentTask = task1
-
+    currentTask = task2

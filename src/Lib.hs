@@ -1,17 +1,16 @@
 module Lib
     ( task0
     , task1
-    ) where
+    , task2
+    )
+where
 
-import Expression
-import Annotation
-import System.IO
-import Parser
-
-removeSpaces :: String -> String
-removeSpaces = foldr f "" where 
-    f c acc | (c == ' ' || c == '\t' || c == '\r') = acc
-            | otherwise = c : acc
+import           Annotation
+import           Deduction
+import           Expression
+import           Parser
+import           System.IO
+import           Utility
 
 inFile :: String
 inFile = "input.txt"
@@ -20,16 +19,29 @@ outFile :: String
 outFile = "output.txt"
 
 execTask :: Prs a -> (a -> String) -> IO ()
-execTask prs mapper = do 
+execTask prs mapper = do
     s <- readFile inFile
     writeFile outFile (mapper $ parse prs (removeSpaces s))
 
 task0 :: IO ()
 task0 = execTask expr prefixForm
 
+data AnnotatedLine = AnnLine !Int !AnnotatedExpr
+
+instance Show AnnotatedLine where
+    show (AnnLine n ae) = "(" ++ show n ++ ") " ++ show ae
+
 task1 :: IO ()
-task1 = do 
+task1 = do
     s <- readFile inFile
-    withFile outFile WriteMode (\handle -> 
-        mapM_ (hPutStrLn handle) $ annotateProof (parse file (removeSpaces s))
+    withFile
+        outFile
+        WriteMode
+        (\handle -> mapM_
+            (hPrint handle . uncurry AnnLine)
+            (zip [1 ..] (annotateProof (parse proof (removeSpaces s))))
         )
+
+task2 :: IO ()
+task2 = execTask proof (show . deduction)
+
